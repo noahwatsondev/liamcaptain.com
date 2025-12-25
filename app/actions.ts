@@ -3,9 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { writeFile, unlink, mkdir } from "fs/promises";
-import path from "path";
-import { cwd } from "process";
+import { put, del } from '@vercel/blob';
 
 export async function createArticle(formData: FormData) {
     const title = formData.get('title') as string;
@@ -174,38 +172,23 @@ export async function updateSiteSettings(formData: FormData) {
     revalidatePath('/mission-control/style');
 }
 
+
+
 export async function uploadImage(formData: FormData) {
     const file = formData.get('file') as File;
     if (!file) {
         throw new Error('No file uploaded');
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    // Create unique filename
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const extension = path.extname(file.name);
-    const basename = path.basename(file.name, extension).replace(/[^a-z0-9]/gi, '-').toLowerCase();
-    const filename = `${basename}-${uniqueSuffix}${extension}`;
-
-    // Ensure upload directory exists
-    const uploadDir = path.join(cwd(), 'public', 'uploads');
-    try {
-        await mkdir(uploadDir, { recursive: true });
-    } catch (e) {
-        // Ignore error if directory exists
-    }
-
-    // Write file
-    const filePath = path.join(uploadDir, filename);
-    await writeFile(filePath, buffer);
+    // Upload to Vercel Blob
+    const blob = await put(file.name, file, {
+        access: 'public',
+    });
 
     // Save to DB
-    const url = `/uploads/${filename}`;
     await prisma.image.create({
         data: {
-            url,
+            url: blob.url,
             filename: file.name
         }
     });
@@ -219,15 +202,11 @@ export async function deleteImage(id: number, url: string) {
         where: { id }
     });
 
-    // Delete file from filesystem
+    // Delete from Vercel Blob
     try {
-        const filename = url.split('/').pop();
-        if (filename) {
-            const filePath = path.join(cwd(), 'public', 'uploads', filename);
-            await unlink(filePath);
-        }
+        await del(url);
     } catch (e) {
-        console.error('Failed to delete file:', e);
+        console.error('Failed to delete blob:', e);
     }
 
     revalidatePath('/mission-control/images');
