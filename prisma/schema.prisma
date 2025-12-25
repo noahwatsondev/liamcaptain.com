@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Article {
+  id            Int       @id @default(autoincrement())
+  title         String
+  slug          String    @unique
+  excerpt       String?
+  author        String?   // Author display name
+  content       String    // JSON string for Tiptap content
+  featuredImage String?
+  published     Boolean   @default(false)
+  publishedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime
+
+  // SEO & Metrics
+  seoTitle       String?
+  seoDescription String?
+
+  // Editorial
+  isFeatured     Boolean   @default(false)
+  type           String    @default("ARTICLE") // "ARTICLE" or "RECIPE"
+}
+
+model SiteSettings {
+  id               Int     @id @default(autoincrement())
+  faviconUrl       String?
+  logoUrl          String?
+  logoStyles       String? // CSS for logo image
+  logoText         String?
+  googleFontImport String? // @import URL from Google Fonts
+  googleFontCss    String? // CSS rule from Google Fonts
+  logoTextStyles   String? // Custom CSS for logo text
+}
+
+model Image {
+  id        Int      @id @default(autoincrement())
+  url       String
+  filename  String
+  createdAt DateTime @default(now())
+}
+
+model SocialLink {
+  id      Int    @id @default(autoincrement())
+  app     String
+  url     String
+  iconUrl String
+  order   Int    @default(0)
+}
