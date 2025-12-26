@@ -128,11 +128,11 @@ h6 {
 }
 
 .site-header {
-  padding-top: 40px;
-  padding-bottom: 40px;
-  display: flex;
   justify-content: space-between;
   align-items: center;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  display: flex;
 }
 
 @media (max-width: 768px) {
