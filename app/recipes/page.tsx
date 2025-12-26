@@ -28,9 +28,7 @@ export default async function Recipes() {
             <div className="container" style={{ textAlign: 'center', padding: '100px 0' }}>
                 <h2 style={{ fontStyle: 'italic', color: 'var(--color-text-muted)' }}>No recipes published yet.</h2>
                 <p style={{ marginTop: '20px' }}>
-                    <Link href="/mission-control/recipes" className="btn">
-                        Create a Recipe
-                    </Link>
+                    Check back later!
                 </p>
             </div>
         );

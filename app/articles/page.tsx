@@ -28,9 +28,7 @@ export default async function ArticlesPage() {
       <div className="container" style={{ textAlign: 'center', padding: '100px 0' }}>
         <h2 style={{ fontStyle: 'italic', color: 'var(--color-text-muted)' }}>No articles published yet.</h2>
         <p style={{ marginTop: '20px' }}>
-          <Link href="/mission-control" className="btn">
-            Go to Mission Control
-          </Link>
+          Check back later!
         </p>
       </div>
     );
