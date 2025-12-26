@@ -23,11 +23,15 @@
     "@tiptap/react": "^3.14.0",
     "@tiptap/starter-kit": "^3.14.0",
     "@vercel/blob": "^2.0.0",
+    "browser-image-compression": "^2.0.2",
+    "heic-convert": "^2.1.0",
+    "heic2any": "^0.0.4",
     "next": "16.1.1",
     "prisma": "^5.22.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "sass": "^1.97.1"
+    "sass": "^1.97.1",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@types/node": "^20",

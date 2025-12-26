@@ -50,7 +50,7 @@ export async function updateArticle(id: number, formData: FormData) {
 export async function togglePublish(id: number, currentState: boolean) {
     const isUnpublishing = currentState === true;
 
-    await prisma.article.update({
+    const updatedArticle = await prisma.article.update({
         where: { id },
         data: {
             published: !currentState,
@@ -60,6 +60,32 @@ export async function togglePublish(id: number, currentState: boolean) {
             ...(isUnpublishing ? { isFeatured: false } : {})
         }
     });
+
+    // Trigger Automation Webhook (Make.com, n8n, Zapier, etc.)
+    if (!isUnpublishing && process.env.AUTOMATION_WEBHOOK_URL) {
+        try {
+            const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://liamcaptain.com';
+            const path = updatedArticle.type === 'RECIPE' ? 'recipe' : 'read';
+            const fullUrl = `${siteUrl}/${path}/${updatedArticle.slug}`;
+
+            await fetch(process.env.AUTOMATION_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: updatedArticle.id,
+                    title: updatedArticle.title,
+                    url: fullUrl,
+                    excerpt: updatedArticle.excerpt,
+                    imageUrl: updatedArticle.featuredImage,
+                    type: updatedArticle.type,
+                    publishedAt: updatedArticle.publishedAt
+                })
+            });
+            console.log('Automation webhook triggered successfully');
+        } catch (e) {
+            console.error('Failed to trigger automation webhook:', e);
+        }
+    }
 
     await ensureFeaturedArticle();
 
@@ -180,17 +206,55 @@ export async function uploadImage(formData: FormData) {
         throw new Error('No file uploaded');
     }
 
+    let fileBuffer = Buffer.from(await file.arrayBuffer());
+    let filename = file.name;
+    let contentType = file.type;
+
+    // Server-side HEIC Conversion using heic-convert
+    if (filename.toLowerCase().endsWith('.heic') || filename.toLowerCase().endsWith('.heif')) {
+        try {
+            const convert = require('heic-convert');
+            const sharp = require('sharp');
+
+            // 1. Convert HEIC to JPEG
+            const heicBuffer = await convert({
+                buffer: fileBuffer,
+                format: 'JPEG',
+                quality: 1.0 // Convert at high quality first, let sharp handle compression/resizing
+            });
+
+            // 2. Resize and Optimize with Sharp
+            const optimizedBuffer = await sharp(heicBuffer)
+                .resize({
+                    width: 1920,
+                    height: 1920,
+                    fit: 'inside', // Maintain aspect ratio, do not exceed dimensions
+                    withoutEnlargement: true // If smaller than 1920, don't scale up
+                })
+                .jpeg({ quality: 80 }) // Compress to 80%
+                .toBuffer();
+
+            fileBuffer = optimizedBuffer;
+            filename = filename.replace(/\.(heic|HEIC|heif|HEIF)$/, '.jpg');
+            contentType = 'image/jpeg';
+        } catch (e) {
+            console.error('Server-side HEIC conversion/optimization failed:', e);
+            // Fallback: upload original
+        }
+    }
+
     // Upload to Vercel Blob
-    const blob = await put(file.name, file, {
+    const blob = await put(filename, fileBuffer, {
         access: 'public',
-        addRandomSuffix: true, // Prevent overwrite errors
+        addRandomSuffix: true,
+        contentType: contentType // Ensure correct content type is sent
     });
 
     // Save to DB
     await prisma.image.create({
         data: {
             url: blob.url,
-            filename: file.name
+            filename: filename
         }
     });
 

@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { uploadImage, deleteImage } from "@/app/actions";
+import { deleteImage } from "@/app/actions";
 
 import CopyButton from "@/components/CopyButton";
+import ImageUploader from "@/components/ImageUploader";
 
 export default async function ImagesPage() {
     const images = await prisma.image.findMany({
@@ -13,18 +14,7 @@ export default async function ImagesPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
                 <h1 style={{ fontFamily: 'var(--font-sans)', fontSize: '24px' }}>Image Library</h1>
 
-                <form action={uploadImage} style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                    <input
-                        type="file"
-                        name="file"
-                        accept="image/*"
-                        required
-                        style={{ fontSize: '14px' }}
-                    />
-                    <button type="submit" className="btn" style={{ background: '#000', color: '#fff', fontSize: '13px', padding: '8px 16px', border: 'none', borderRadius: '4px' }}>
-                        Upload Image
-                    </button>
-                </form>
+                <ImageUploader />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '20px' }}>
