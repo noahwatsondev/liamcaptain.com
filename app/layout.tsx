@@ -58,6 +58,7 @@ export default async function RootLayout({
           <a href="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '12px' }}>
             {settings?.logoUrl && (
               <img
+                id="site-logo"
                 src={settings.logoUrl}
                 alt={settings.logoText || "The Articles App"}
                 style={{ maxHeight: '40px', width: 'auto' }}
@@ -65,8 +66,8 @@ export default async function RootLayout({
               />
             )}
             <span
+              id="site-logo-text"
               className={`font-serif ${fontClassMatch ? fontClassMatch[1] : ''}`}
-              style={{ fontSize: '24px', fontWeight: 700, letterSpacing: '-0.5px' }}
             >
               {settings?.logoText || "The Articles App"}
             </span>
