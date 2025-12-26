@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { GoogleAnalytics } from '@next/third-parties/google';
 import "./globals.css";
 import { prisma } from "@/lib/prisma";
 import Navigation from "@/components/Navigation";
@@ -97,6 +98,7 @@ export default async function RootLayout({
           </div>
         </footer>
       </body>
+      {process.env.NODE_ENV === 'production' && <GoogleAnalytics gaId="G-VSZ755XZ42" />}
     </html>
   );
 }
